@@ -11,6 +11,7 @@ from datetime import datetime, timezone, timedelta
 import os
 import bcrypt
 import jwt
+import httpx
 
 app = FastAPI()
 
@@ -79,6 +80,21 @@ def format_user(user: dict) -> dict:
 
 
 async def get_current_user(request: Request) -> Optional[dict]:
+    # Check session_token (Google OAuth) first
+    session_token = request.cookies.get("session_token")
+    if session_token:
+        session = await db.user_sessions.find_one({"session_token": session_token})
+        if session:
+            expires_at = session.get("expires_at")
+            if expires_at:
+                if expires_at.tzinfo is None:
+                    expires_at = expires_at.replace(tzinfo=timezone.utc)
+                if expires_at > datetime.now(timezone.utc):
+                    user = await db.users.find_one({"_id": ObjectId(session["user_id"])})
+                    if user:
+                        return format_user(user)
+
+    # Check access_token (JWT email/password auth)
     token = request.cookies.get("access_token")
     if not token:
         auth_header = request.headers.get("Authorization", "")
@@ -160,6 +176,10 @@ class VoteRequest(BaseModel):
     vote_type: str
 
 
+class GoogleSessionRequest(BaseModel):
+    session_id: str
+
+
 # ---- AUTH ROUTES ----
 
 @app.post("/api/auth/register")
@@ -224,9 +244,15 @@ async def login(req: LoginRequest, response: Response, request: Request):
 
 
 @app.post("/api/auth/logout")
-async def logout(response: Response):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+async def logout(request: Request, response: Response):
+    # Clear JWT cookies
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/")
+    # Clear Google OAuth session
+    session_token = request.cookies.get("session_token")
+    if session_token:
+        await db.user_sessions.delete_one({"session_token": session_token})
+    response.delete_cookie("session_token", path="/")
     return {"message": "Logged out"}
 
 
@@ -256,6 +282,70 @@ async def refresh(request: Request, response: Response):
         return {"message": "Token refreshed"}
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+
+@app.post("/api/auth/google/session")
+async def google_session(req: GoogleSessionRequest, response: Response):
+    """Exchange Emergent OAuth session_id for a user session cookie."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+            headers={"X-Session-ID": req.session_id},
+            timeout=10.0,
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid or expired session_id")
+
+    data = resp.json()
+    email = data["email"].lower().strip()
+    name = data.get("name", email.split("@")[0])
+    picture = data.get("picture", "")
+    session_token = data["session_token"]
+
+    # Find or create user by email
+    user = await db.users.find_one({"email": email})
+    if user is None:
+        result = await db.users.insert_one({
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "role": "user",
+            "auth_method": "google",
+            "created_at": datetime.now(timezone.utc),
+        })
+        user_id = str(result.inserted_id)
+    else:
+        user_id = str(user["_id"])
+        # Update profile data if changed
+        updates = {}
+        if name and user.get("name") != name:
+            updates["name"] = name
+        if picture and user.get("picture") != picture:
+            updates["picture"] = picture
+        if updates:
+            await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": updates})
+
+    # Store/replace session
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    await db.user_sessions.update_one(
+        {"user_id": user_id},
+        {"$set": {"session_token": session_token, "expires_at": expires_at, "created_at": datetime.now(timezone.utc)}},
+        upsert=True,
+    )
+
+    # Set httpOnly session cookie (secure for HTTPS environment)
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=604800,
+        path="/",
+    )
+
+    user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
+    return format_user(user_doc)
 
 
 # ---- IDEA ROUTES ----
@@ -472,6 +562,9 @@ async def startup():
     await db.ideas.create_index([("created_at", -1)])
     await db.ideas.create_index("category")
     await db.ideas.create_index("time_needed")
+    await db.user_sessions.create_index("session_token", unique=True)
+    await db.user_sessions.create_index("user_id")
+    await db.user_sessions.create_index("expires_at", expireAfterSeconds=0)
 
     # Seed admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@boredideas.com")

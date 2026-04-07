@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
@@ -8,6 +8,7 @@ import FeedPage from './pages/FeedPage';
 import AuthPage from './pages/AuthPage';
 import ProfilePage from './pages/ProfilePage';
 import IdeaForm from './components/IdeaForm';
+import AuthCallback from './components/AuthCallback';
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -23,8 +24,15 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-function AppContent() {
+// REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+function AppRouter() {
+  const location = useLocation();
   const { formState, closeForm, handleIdeaSuccess } = useApp();
+
+  // Synchronously detect OAuth callback before any route renders (prevents race conditions)
+  if (location.hash?.includes('session_id=')) {
+    return <AuthCallback />;
+  }
 
   return (
     <div className="min-h-screen bg-surface">
@@ -62,7 +70,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppProvider>
-          <AppContent />
+          <AppRouter />
         </AppProvider>
       </AuthProvider>
     </BrowserRouter>

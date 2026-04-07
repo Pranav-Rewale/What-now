@@ -4,8 +4,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        heading: ["'Outfit'", "sans-serif"],
-        body: ["'Nunito'", "sans-serif"],
+        heading: ["'Quicksand'", "sans-serif"],
+        body: ["'Actor'", "sans-serif"],
       },
       colors: {
         primary: "#FFE100",

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -8,11 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkSession();
-  }, []);
-
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     try {
       const { data } = await axios.get(`${API_URL}/api/auth/me`, { withCredentials: true });
       setUser(data);
@@ -27,7 +23,17 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // CRITICAL: If returning from OAuth callback, skip the /me check.
+    // AuthCallback will exchange the session_id and establish the session first.
+    if (window.location.hash?.includes('session_id=')) {
+      setLoading(false);
+      return;
+    }
+    checkSession();
+  }, [checkSession]);
 
   const login = async (email, password) => {
     const { data } = await axios.post(`${API_URL}/api/auth/login`, { email, password }, { withCredentials: true });
@@ -47,7 +53,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, checkSession }}>
+    <AuthContext.Provider value={{ user, loading, setUser, login, register, logout, checkSession }}>
       {children}
     </AuthContext.Provider>
   );

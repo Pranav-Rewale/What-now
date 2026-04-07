@@ -24,14 +24,14 @@
 
 body {
   background-color: #FAFAFA;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Actor', sans-serif;
   color: #1A1A1A;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Quicksand', sans-serif;
 }
 
 .line-clamp-2 {
