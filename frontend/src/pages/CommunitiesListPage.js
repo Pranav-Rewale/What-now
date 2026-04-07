@@ -81,7 +81,7 @@ function CommunityGroup({ title, communities, user, onJoinToggle }) {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold font-heading text-[#1A1A1A]">{c.name}</p>
-                <p className="text-xs text-[#A0A0A0]">{c.members_count} members</p>
+                <p className="text-xs text-[#A0A0A0]">{c.members_count} {c.members_count === 1 ? 'member' : 'members'}</p>
               </div>
             </Link>
             {user && (
@@ -89,7 +89,7 @@ function CommunityGroup({ title, communities, user, onJoinToggle }) {
                 onClick={() => onJoinToggle(c)}
                 variant={c.joined ? 'secondary' : 'primary'}
                 size="icon-sm"
-                title={c.joined ? 'Leave' : 'Join'}
+                title={c.joined ? 'Leave community' : 'Join community'}
               >
                 {c.joined ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
               </Button>

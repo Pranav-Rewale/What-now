@@ -1,75 +1,67 @@
 # PRD: Bored? — Crowdsourced Ideas App
 
-## Problem Statement
-Build a crowdsourcing app for bored ideas. Users submit ideas for things to do when bored. Ideas are organized by category and time needed. All ideas go to a global feed with upvote/downvote voting. Feed is filterable by category and time needed.
-
 ## Architecture
-- **Frontend**: React 18 + Tailwind CSS + React Router v6 + Axios + Framer Motion + shadcn/ui
-- **Backend**: FastAPI (Python) + Motor (async MongoDB driver)
-- **Database**: MongoDB
-- **Auth**: JWT-based (httpOnly cookie, 7-day access token, 30-day refresh token)
+- Frontend: React 18 + Tailwind CSS + Framer Motion + shadcn/ui + React Router v6
+- Backend: FastAPI + Motor (async MongoDB) + StaticFiles (image uploads)
+- Auth: JWT cookie (email/password) + Emergent Google OAuth (session_token cookie)
+- Fonts: Quicksand (headings) + Actor (body)
 
-## Design System (v2 — April 2026)
-Colors:
-- primary: #FFE100, primaryDark: #000000
-- grayDark: #1A1A1A, gray: #3C3C3C, grayLight: #E6E6E6, surface: #FAFAFA
-- accentRed: #FF4757, accentCyan: #00E5FF, accentGreen: #2DFF72, accentViolet: #5D2EFF
+## Color Palette
+primary #FFE100, primaryDark #000000, grayDark #1A1A1A, gray #3C3C3C, grayLight #E6E6E6, surface #FAFAFA
+accentRed #FF4757, accentCyan #00E5FF, accentGreen #2DFF72, accentViolet #5D2EFF
 
-Radii: small 4px / medium 8px / large 16px
-Shadows: soft "0 4px 12px rgba(0,0,0,0.12)" / hard "0 2px 8px rgba(0,0,0,0.25)"
+## Features Implemented
 
-shadcn UI Components: Button (CVA variants), Badge, Input, Textarea, Label
-Framer Motion: card entrance stagger, hover lift, vote button spring, modal slide-up
+### Auth
+- [x] Email/password JWT auth (register, login, logout, refresh)
+- [x] Google OAuth via Emergent Auth (AuthCallback.js, session_token cookie)
+- [x] Brute force protection (5 attempts → 15 min lockout)
 
-## User Choices
-- JWT-based custom auth (email + password)
-- Fun & colorful — modern high-contrast (yellow/black + vivid accents)
-- Rich idea submission (title + description + category + time needed + optional image/link)
-- Sort by Most Upvoted (popular) and Newest First
-- Idea management: edit and delete own ideas
+### Global Feed
+- [x] Paginated ideas feed (12/page) with filters: category, time_needed, sort (popular/newest)
+- [x] 12 pre-seeded global ideas
+- [x] Upvote/downvote toggle system with score tracking
 
-## What's Been Implemented
+### Ideas
+- [x] Rich submission: title, description, category, time_needed, image (upload or URL), optional link
+- [x] Image file upload (POST /api/upload/image → /api/uploads/* static files)
+- [x] Edit and delete own ideas (two-click confirm delete)
+- [x] community_id field for local community ideas vs global feed
 
-## Auth (dual method — April 2026)
-- [x] Email/password JWT auth (existing — unchanged)
-- [x] Google OAuth via Emergent Auth (new)
-  - GET /api/auth/google/session — exchanges session_id, creates user, sets session_token cookie
-  - get_current_user checks session_token (Google) then access_token (JWT)
-  - AuthCallback.js processes #session_id= URL hash fragment
-  - AppRouter synchronously detects session_id before route renders
-  - AuthContext skips /me check during OAuth callback
-  - Logout clears both cookies + deletes session from user_sessions collection
-- Brute force protection (5 attempts → 15 min lockout)
-- Admin seeding + 12 sample ideas on first startup
-- Full CRUD for ideas (author-only edit/delete)
-- Vote toggle system (upvote/downvote with score tracking)
-- MongoDB indexes for performance
+### Follow System
+- [x] Follow/unfollow users from idea card author row
+- [x] GET /api/users/following — list of followed users
+- [x] POST/DELETE /api/users/:id/follow
+- [x] GET /api/ideas/following — feed of followed users' ideas
+- [x] Following page (/following)
+- [x] Sidebar shows followed users list (desktop)
 
-### Frontend v2 (April 2026 redesign)
-- [x] New design system applied throughout (palette, radii, shadows)
-- [x] Header: dark black bg, yellow logo + icon, shadcn Button
-- [x] IdeaCard: white card, soft shadow, colored top bar, framer motion entrance + hover lift
-- [x] FilterBar: yellow active sort toggle, category-accent-colored filter pills, time yellow
-- [x] IdeaForm: framer motion slide-up modal, shadcn Input/Textarea/Label
-- [x] AuthPage: clean card, yellow CTA button, framer motion entrance
-- [x] ProfilePage: stat cards with accent colors, animated entrance
-- [x] Vote buttons: green (#2DFF72) upvote active, red (#FF4757) downvote active
-- [x] shadcn components: Button (7 variants), Badge, Input, Textarea, Label
-- [x] AnimatePresence for modal mount/unmount transitions
+### Local Communities
+- [x] 10 cities: Mumbai, Delhi, Bengaluru, Chennai, Hyderabad (India) + NYC, LA, Chicago, Houston, Phoenix (USA)
+- [x] 5 seeded local ideas per city (50 total community ideas)
+- [x] Join/leave communities (sidebar + community page + communities list page)
+- [x] Community ideas feed at /communities/:id
+- [x] Communities list page at /communities
 
-## Test Results
-- v1 Backend: 16/16 passed
-- v2 UI Redesign: 95% pass, all design elements verified
+### Layout
+- [x] Desktop: sticky left sidebar (w-64) with Following section + India + US communities
+- [x] Mobile: bottom nav bar (Feed | Following | Local | Profile)
+- [x] All routes: /, /communities, /communities/:id, /following, /profile, /auth
 
-## Prioritized Backlog
+## Test Results (All Iterations)
+- Iteration 1: 16/16 backend, 100% frontend (initial MVP)
+- Iteration 2: 95% UI redesign verification
+- Iteration 3: 8/8 Google Auth + fonts
+- Iteration 4: 15/15 new features (image upload, follow, communities)
+
+## Backlog
 ### P1
-- Comments/discussion per idea
-- Keyword search
+- Comments per idea
+- Keyword search in filter bar
 - Social sharing buttons
 ### P2
-- Infinite scroll
-- Email verification
-- Password reset via email
-- Trending section (hot algorithm)
+- Trending/hot algorithm
 - Dark mode toggle
-- User follows / personalized feed
+- Email notifications for follows
+- Community moderation (admin)
+- User avatars from Google profile

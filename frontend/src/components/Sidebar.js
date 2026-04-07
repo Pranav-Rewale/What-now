@@ -123,7 +123,7 @@ function CommunityItem({ community, onJoinToggle, user }) {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[#1A1A1A] truncate">{community.name}</p>
-          <p className="text-xs text-[#A0A0A0]">{community.members_count} members</p>
+          <p className="text-xs text-[#A0A0A0]">{community.members_count} {community.members_count === 1 ? 'member' : 'members'}</p>
         </div>
       </Link>
       {user && (
