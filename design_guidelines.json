@@ -1,0 +1,172 @@
+{
+  "project_name": "Bored Ideas Crowdsourcing App",
+  "theme": "light",
+  "archetype": "Archetype 6: Vibrant Play (with Neo-Brutalist elements)",
+  "design_philosophy": {
+    "core_principles": [
+      "Fun over formal: Emphasize playful shapes, high-contrast colors, and chunky borders.",
+      "Neo-Brutalist contrast: Use heavy, solid drop shadows (offset without blur) and thick outlines to make elements pop off the screen like stickers.",
+      "Clear taxonomy: Color-code categories so the feed is instantly scannable.",
+      "Tactile interactions: Buttons should feel like physical, springy blocks."
+    ],
+    "emotional_tone": "Playful, energetic, unstructured but legible, welcoming to all ages."
+  },
+  "colors": {
+    "background": {
+      "main": "#FFFDF7",
+      "card": "#FFFFFF",
+      "modal": "#FFFDF7"
+    },
+    "text": {
+      "primary": "#0A0A0A",
+      "secondary": "#334155",
+      "muted": "#64748B",
+      "light": "#FFFFFF"
+    },
+    "border": {
+      "default": "#0A0A0A",
+      "subtle": "#CBD5E1"
+    },
+    "shadow": {
+      "hard": "rgba(10, 10, 10, 1)"
+    },
+    "brand": {
+      "primary": "#FACC15",
+      "secondary": "#60A5FA",
+      "accent": "#F472B6"
+    },
+    "categories": {
+      "outdoors": { "bg": "#4ADE80", "text": "#0A0A0A" },
+      "crafts": { "bg": "#F472B6", "text": "#0A0A0A" },
+      "cooking": { "bg": "#FACC15", "text": "#0A0A0A" },
+      "painting": { "bg": "#60A5FA", "text": "#0A0A0A" },
+      "entertainment": { "bg": "#FB923C", "text": "#0A0A0A" },
+      "default": { "bg": "#E2E8F0", "text": "#0A0A0A" }
+    },
+    "time_badges": {
+      "bg": "#FFFFFF",
+      "text": "#0A0A0A"
+    },
+    "actions": {
+      "upvote_active": "#EF4444",
+      "downvote_active": "#3B82F6",
+      "neutral": "#E2E8F0"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "'Outfit', sans-serif",
+      "body": "'Nunito', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-bold",
+      "h4": "text-lg font-bold",
+      "body": "text-base font-medium leading-relaxed",
+      "small": "text-sm font-bold uppercase tracking-widest",
+      "badge": "text-xs font-bold uppercase tracking-wider"
+    }
+  },
+  "spacing_and_layout": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "grid_system": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8",
+    "padding": {
+      "card": "p-6",
+      "section": "py-16 md:py-24",
+      "badge": "px-3 py-1"
+    },
+    "radius": {
+      "card": "rounded-2xl",
+      "button": "rounded-xl",
+      "badge": "rounded-full"
+    }
+  },
+  "surfaces_and_components": {
+    "global": {
+      "border_thickness": "border-2",
+      "hard_shadow_default": "shadow-[4px_4px_0px_0px_rgba(10,10,10,1)]",
+      "hard_shadow_hover": "hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1",
+      "transition": "transition-all duration-200 ease-out"
+    },
+    "header": {
+      "style": "bg-[#FFFDF7] border-b-2 border-[#0A0A0A] sticky top-0 z-50",
+      "padding": "py-4"
+    },
+    "buttons": {
+      "primary": "bg-[#FACC15] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1 font-bold transition-all px-6 py-3 rounded-xl",
+      "secondary": "bg-[#FFFFFF] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1 font-bold transition-all px-6 py-3 rounded-xl",
+      "destructive": "bg-[#EF4444] text-[#FFFFFF] border-2 border-[#0A0A0A] font-bold px-4 py-2 rounded-xl"
+    },
+    "cards": {
+      "idea_card": "bg-[#FFFFFF] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden transition-all duration-200 ease-out hover:shadow-[8px_8px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1",
+      "auth_card": "bg-[#FFFFFF] border-2 border-[#0A0A0A] shadow-[8px_8px_0px_0px_rgba(10,10,10,1)] rounded-2xl p-8 max-w-md mx-auto"
+    },
+    "badges": {
+      "category": "border-2 border-[#0A0A0A] text-[#0A0A0A] font-bold text-xs uppercase px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(10,10,10,1)]",
+      "time": "bg-[#FFFFFF] border-2 border-[#0A0A0A] text-[#0A0A0A] font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(10,10,10,1)]"
+    },
+    "forms": {
+      "input": "bg-[#FFFFFF] border-2 border-[#0A0A0A] rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-[#FACC15]/50 focus:border-[#0A0A0A] transition-all font-medium text-[#0A0A0A] shadow-[2px_2px_0px_0px_rgba(10,10,10,1)]",
+      "label": "block text-sm font-bold text-[#0A0A0A] mb-2"
+    },
+    "filters": {
+      "bar": "flex flex-wrap gap-3 py-6 items-center",
+      "filter_button_active": "bg-[#0A0A0A] text-[#FFFFFF] border-2 border-[#0A0A0A] rounded-full px-4 py-2 font-bold shadow-[2px_2px_0px_0px_rgba(10,10,10,1)]",
+      "filter_button_inactive": "bg-[#FFFFFF] text-[#0A0A0A] border-2 border-[#0A0A0A] rounded-full px-4 py-2 font-bold shadow-[2px_2px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-0.5"
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "stroke_width": 2.5,
+    "usage": "Use solid/chunky icons to match the bold font. E.g., Clock, Flame (for upvotes), ArrowDown, Image, Plus, Filter."
+  },
+  "media": {
+    "images": [
+      {
+        "category": "hero_background",
+        "url": "https://images.unsplash.com/photo-1723283126735-f24688fcfcc2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwyfHxjb2xvcmZ1bCUyMGdlb21ldHJpYyUyMGFic3RyYWN0JTIwZGVzaWdufGVufDB8fHx8MTc3NTU5ODEwNnww&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract pattern with colorful organic shapes. Use this behind a container or hero section with a heavy black outline to frame it.",
+        "usage": "Hero banner texture or call-to-action background in the app."
+      },
+      {
+        "category": "auth_background",
+        "url": "https://images.unsplash.com/photo-1723283126778-c16ae4c2b0c9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHw0fHxjb2xvcmZ1bCUyMGdlb21ldHJpYyUyMGFic3RyYWN0JTIwZGVzaWdufGVufDB8fHx8MTc3NTU5ODEwNnww&ixlib=rb-4.1.0&q=85",
+        "description": "Colorful geometric pattern. Perfect for the split-screen login/register page as a purely decorative half-page background.",
+        "usage": "Login/register background panel"
+      },
+      {
+        "category": "default_avatar",
+        "url": "https://images.unsplash.com/photo-1695789589443-543b3fbaff0a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHw0fHxwbGF5ZnVsJTIwY29sb3JmdWwlMjBhYnN0cmFjdCUyMGF2YXRhcnxlbnwwfHx8fDE3NzU1OTgxMDB8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Group of differently colored shapes. Use as fallback avatar for users.",
+        "usage": "User profile picture fallback"
+      }
+    ]
+  },
+  "page_specific_instructions": {
+    "home_feed": {
+      "layout": "Bento-style grid for ideas. Include a sticky filter bar at the top.",
+      "sorting": "Toggle between 'Most Upvoted' and 'Newest First'. Design the toggle as a chunky pill switcher.",
+      "idea_cards": "Display title prominently in H3. Render category badge (using dynamic color map) and time badge. Image should be object-cover, bounded by a 2px black bottom border if placed at the top of the card.",
+      "upvote_mechanic": "A prominent section on the card (left side or bottom right) with up and down arrows. Active states should fill with a solid bright color (Red for down, Blue for up)."
+    },
+    "submit_idea_modal": {
+      "layout": "A heavy, thick-bordered dialog centered on screen with a dark backdrop (backdrop-blur-sm bg-black/40).",
+      "fields": "Title (large input), Description (textarea), Category (Select dropdown with colorful options), Time Needed (Radio group styled as clickable pills), Image URL (optional).",
+      "action": "A massive primary CTA button to submit."
+    },
+    "login_register": {
+      "layout": "Split screen or centered massive card. Use the 'auth_background' image from the media section to make it feel vibrant."
+    },
+    "user_profile": {
+      "layout": "Header with user stats (Total Ideas submitted, Total Upvotes received) styled in neo-brutalist blocks. Followed by a feed of their own ideas.",
+      "actions": "Idea cards here should include 'Edit' and 'Delete' buttons prominently. Delete button should be a bold red square icon button."
+    }
+  },
+  "accessibility_and_testing": {
+    "contrast": "Ensure black text (#0A0A0A) is used over all vibrant category colors for maximum readability.",
+    "focus_states": "All inputs and buttons must have a heavy focus ring, e.g., 'focus:ring-4 focus:ring-[#FACC15] focus:ring-offset-2 focus:ring-offset-[#FFFDF7]'.",
+    "test_ids": "Mandatory 'data-testid' attributes on all interactive elements (buttons, inputs, toggles, cards)."
+  }
+}
