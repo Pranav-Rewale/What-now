@@ -65,26 +65,23 @@ export default function FeedPage() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div>
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-10 text-center"
+        className="mb-8 text-center"
       >
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#1A1A1A] font-heading mb-3 leading-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[#1A1A1A] font-heading mb-2 leading-tight">
           What to do when{' '}
-          <span
-            className="px-3 rounded-[8px] inline-block"
-            style={{ backgroundColor: '#FFE100', color: '#000000' }}
-          >
+          <span className="px-2 rounded-[8px] inline-block" style={{ backgroundColor: '#FFE100', color: '#000000' }}>
             bored
           </span>
           ?
         </h1>
-        <p className="text-base sm:text-lg text-[#3C3C3C] font-body max-w-xl mx-auto">
-          Crowdsourced ideas from real people. Vote for your favorites and share your own!
+        <p className="text-sm sm:text-base text-[#3C3C3C] font-body max-w-lg mx-auto">
+          Crowdsourced ideas from real people. Vote for your favorites!
         </p>
       </motion.div>
 
@@ -116,7 +113,7 @@ export default function FeedPage() {
       {ideas.length > 0 && (
         <div
           data-testid="ideas-grid"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8"
         >
           {ideas.map((idea, index) => (
             <IdeaCard
@@ -150,6 +147,6 @@ export default function FeedPage() {
           <Loader2 className="w-8 h-8 animate-spin text-[#FFE100]" />
         </div>
       )}
-    </main>
+    </div>
   );
 }

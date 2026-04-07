@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Clock, ThumbsUp, ThumbsDown, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import { Clock, ThumbsUp, ThumbsDown, Edit2, Trash2, ExternalLink, UserPlus, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { getCategoryColor, getCategoryTextColor, getCategoryLabel } from '../utils/constants';
@@ -26,7 +26,7 @@ function formatDate(dateStr) {
 
 export default function IdeaCard({ idea, onVoteUpdate, onDeleted, index = 0 }) {
   const { user } = useAuth();
-  const { openEditForm } = useApp();
+  const { openEditForm, followingIds, toggleFollow } = useApp();
   const [voting, setVoting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -35,6 +35,8 @@ export default function IdeaCard({ idea, onVoteUpdate, onDeleted, index = 0 }) {
   const catText = getCategoryTextColor(idea.category);
   const catLabel = getCategoryLabel(idea.category);
   const isAuthor = user && (user.id === idea.author_id || user._id === idea.author_id);
+  const canFollow = user && !isAuthor && idea.author_id !== 'system';
+  const isFollowing = followingIds.has(idea.author_id);
 
   const handleVote = async (voteType) => {
     if (!user) { window.location.href = '/auth'; return; }
@@ -140,8 +142,20 @@ export default function IdeaCard({ idea, onVoteUpdate, onDeleted, index = 0 }) {
 
         {/* Author & date */}
         <div className="flex items-center justify-between text-xs text-[#3C3C3C]">
-          <span className="font-semibold truncate mr-2">by {idea.author_name}</span>
-          <span className="flex-shrink-0 text-[#A0A0A0]">{formatDate(idea.created_at)}</span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-semibold truncate">by {idea.author_name}</span>
+            {canFollow && (
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => toggleFollow(idea.author_id)}
+                title={isFollowing ? 'Unfollow' : 'Follow'}
+                className={`flex-shrink-0 p-0.5 rounded transition-colors ${isFollowing ? 'text-[#5D2EFF]' : 'text-[#A0A0A0] hover:text-[#5D2EFF]'}`}
+              >
+                {isFollowing ? <UserCheck className="w-3.5 h-3.5" /> : <UserPlus className="w-3.5 h-3.5" />}
+              </motion.button>
+            )}
+          </div>
+          <span className="flex-shrink-0 text-[#A0A0A0] ml-2">{formatDate(idea.created_at)}</span>
         </div>
 
         {/* Divider */}
