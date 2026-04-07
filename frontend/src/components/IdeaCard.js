@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 import { Clock, ThumbsUp, ThumbsDown, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { getCategoryColor, getCategoryLabel } from '../utils/constants';
+import { getCategoryColor, getCategoryTextColor, getCategoryLabel } from '../utils/constants';
+import { Badge } from './ui/badge.jsx';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -22,22 +24,20 @@ function formatDate(dateStr) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function IdeaCard({ idea, onVoteUpdate, onDeleted }) {
+export default function IdeaCard({ idea, onVoteUpdate, onDeleted, index = 0 }) {
   const { user } = useAuth();
   const { openEditForm } = useApp();
   const [voting, setVoting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const categoryColor = getCategoryColor(idea.category);
-  const categoryLabel = getCategoryLabel(idea.category);
+  const catBg = getCategoryColor(idea.category);
+  const catText = getCategoryTextColor(idea.category);
+  const catLabel = getCategoryLabel(idea.category);
   const isAuthor = user && (user.id === idea.author_id || user._id === idea.author_id);
 
   const handleVote = async (voteType) => {
-    if (!user) {
-      window.location.href = '/auth';
-      return;
-    }
+    if (!user) { window.location.href = '/auth'; return; }
     if (voting) return;
     setVoting(true);
     try {
@@ -73,16 +73,23 @@ export default function IdeaCard({ idea, onVoteUpdate, onDeleted }) {
   };
 
   return (
-    <div
+    <motion.div
       data-testid="idea-card"
-      className="bg-[#FFFFFF] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] rounded-2xl overflow-hidden flex flex-col transition-all duration-200 ease-out hover:shadow-[8px_8px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1"
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: Math.min(index * 0.045, 0.35) }}
+      whileHover={{ y: -6, transition: { duration: 0.22, ease: 'easeOut' } }}
+      className="bg-white rounded-[16px] overflow-hidden flex flex-col"
+      style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}
+      onHoverStart={(e) => { e.target.style.boxShadow = '0 12px 32px rgba(0,0,0,0.18)'; }}
+      onHoverEnd={(e) => { e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)'; }}
     >
-      {/* Color accent bar */}
-      <div className="h-2 w-full flex-shrink-0" style={{ backgroundColor: categoryColor }} />
+      {/* Category color bar */}
+      <div className="h-1.5 w-full flex-shrink-0" style={{ backgroundColor: catBg }} />
 
-      {/* Image */}
+      {/* Optional image */}
       {idea.image_url && (
-        <div className="relative h-44 border-b-2 border-[#0A0A0A] flex-shrink-0">
+        <div className="h-44 flex-shrink-0 overflow-hidden">
           <img
             src={idea.image_url}
             alt={idea.title}
@@ -93,110 +100,125 @@ export default function IdeaCard({ idea, onVoteUpdate, onDeleted }) {
       )}
 
       <div className="p-5 flex flex-col flex-1 gap-3">
-        {/* Badges */}
+        {/* Badges row */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span
+          <Badge
             data-testid="category-badge"
-            className="border-2 border-[#0A0A0A] text-[#0A0A0A] font-bold text-xs uppercase px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(10,10,10,1)] leading-none"
-            style={{ backgroundColor: categoryColor }}
+            style={{ backgroundColor: catBg, color: catText }}
           >
-            {categoryLabel}
-          </span>
-          <span
-            data-testid="time-badge"
-            className="bg-[#FFFFFF] border-2 border-[#0A0A0A] text-[#0A0A0A] font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(10,10,10,1)] leading-none"
-          >
-            <Clock className="w-3 h-3 flex-shrink-0" strokeWidth={3} />
+            {catLabel}
+          </Badge>
+          <Badge variant="time" data-testid="time-badge">
+            <Clock className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
             {idea.time_needed}
-          </span>
+          </Badge>
         </div>
 
         {/* Title */}
-        <h3 className="text-base font-black font-heading text-[#0A0A0A] leading-tight line-clamp-2">
+        <h3 className="text-base font-black font-heading text-[#1A1A1A] leading-tight line-clamp-2">
           {idea.title}
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-[#334155] font-body font-medium leading-relaxed line-clamp-3 flex-1">
+        <p className="text-sm text-[#3C3C3C] font-body leading-relaxed line-clamp-3 flex-1">
           {idea.description}
         </p>
 
-        {/* Link */}
+        {/* External link */}
         {idea.link_url && (
           <a
             href={idea.link_url}
             target="_blank"
             rel="noopener noreferrer"
             data-testid="idea-link"
-            className="flex items-center gap-1 text-xs font-bold text-[#60A5FA] hover:text-[#3B82F6] underline"
+            className="flex items-center gap-1 text-xs font-bold text-[#5D2EFF] hover:opacity-75 transition-opacity"
           >
             <ExternalLink className="w-3 h-3" />
             Visit Link
           </a>
         )}
 
-        {/* Author & Date */}
-        <div className="flex items-center justify-between text-xs text-[#64748B] font-body">
-          <span className="font-bold truncate mr-2">by {idea.author_name}</span>
-          <span className="flex-shrink-0">{formatDate(idea.created_at)}</span>
+        {/* Author & date */}
+        <div className="flex items-center justify-between text-xs text-[#3C3C3C]">
+          <span className="font-semibold truncate mr-2">by {idea.author_name}</span>
+          <span className="flex-shrink-0 text-[#A0A0A0]">{formatDate(idea.created_at)}</span>
         </div>
 
-        {/* Vote & Actions */}
-        <div className="flex items-center justify-between pt-2 border-t-2 border-[#E2E8F0]">
-          {/* Vote Buttons */}
+        {/* Divider */}
+        <div className="border-t border-[#E6E6E6]" />
+
+        {/* Votes + actions */}
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <button
+            {/* Upvote */}
+            <motion.button
+              whileTap={{ scale: 0.82 }}
+              whileHover={{ scale: 1.06 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               onClick={() => handleVote('upvote')}
               data-testid="upvote-btn"
               disabled={voting}
               title={user ? 'Upvote' : 'Login to vote'}
-              className={`flex items-center gap-1.5 border-2 border-[#0A0A0A] rounded-xl px-3 py-1.5 font-bold text-sm transition-all shadow-[2px_2px_0px_0px_rgba(10,10,10,1)] hover:shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-0.5 disabled:opacity-50 ${
-                idea.user_vote === 'upvote' ? 'bg-[#EF4444] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#0A0A0A]'
+              className={`flex items-center gap-1.5 rounded-[8px] px-3 py-1.5 text-sm font-bold border transition-colors disabled:opacity-50 ${
+                idea.user_vote === 'upvote'
+                  ? 'bg-[#2DFF72] text-[#000000] border-[#2DFF72]'
+                  : 'bg-[#FAFAFA] text-[#3C3C3C] border-[#E6E6E6] hover:border-[#2DFF72] hover:text-[#000000]'
               }`}
             >
               <ThumbsUp className="w-3.5 h-3.5" strokeWidth={2.5} />
               <span>{idea.upvotes}</span>
-            </button>
-            <button
+            </motion.button>
+
+            {/* Downvote */}
+            <motion.button
+              whileTap={{ scale: 0.82 }}
+              whileHover={{ scale: 1.06 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               onClick={() => handleVote('downvote')}
               data-testid="downvote-btn"
               disabled={voting}
               title={user ? 'Downvote' : 'Login to vote'}
-              className={`flex items-center gap-1.5 border-2 border-[#0A0A0A] rounded-xl px-3 py-1.5 font-bold text-sm transition-all shadow-[2px_2px_0px_0px_rgba(10,10,10,1)] hover:shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-0.5 disabled:opacity-50 ${
-                idea.user_vote === 'downvote' ? 'bg-[#3B82F6] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#0A0A0A]'
+              className={`flex items-center gap-1.5 rounded-[8px] px-3 py-1.5 text-sm font-bold border transition-colors disabled:opacity-50 ${
+                idea.user_vote === 'downvote'
+                  ? 'bg-[#FF4757] text-[#FFFFFF] border-[#FF4757]'
+                  : 'bg-[#FAFAFA] text-[#3C3C3C] border-[#E6E6E6] hover:border-[#FF4757] hover:text-[#FF4757]'
               }`}
             >
               <ThumbsDown className="w-3.5 h-3.5" strokeWidth={2.5} />
               <span>{idea.downvotes}</span>
-            </button>
+            </motion.button>
           </div>
 
-          {/* Edit/Delete - only for author */}
+          {/* Author actions */}
           {isAuthor && (
             <div className="flex items-center gap-1.5">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.85 }}
                 onClick={() => openEditForm(idea)}
                 data-testid="edit-idea-btn"
-                className="bg-[#FFFFFF] border-2 border-[#0A0A0A] rounded-xl p-1.5 shadow-[2px_2px_0px_0px_rgba(10,10,10,1)] hover:shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-0.5 transition-all"
                 title="Edit idea"
+                className="p-1.5 rounded-[8px] text-[#3C3C3C] hover:bg-[#E6E6E6] transition-colors"
               >
-                <Edit2 className="w-3.5 h-3.5 text-[#0A0A0A]" strokeWidth={2.5} />
-              </button>
-              <button
+                <Edit2 className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
                 onClick={handleDelete}
                 data-testid="delete-idea-btn"
                 disabled={deleting}
                 title={confirmDelete ? 'Click again to confirm' : 'Delete idea'}
-                className={`border-2 border-[#0A0A0A] rounded-xl p-1.5 shadow-[2px_2px_0px_0px_rgba(10,10,10,1)] hover:shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-0.5 transition-all disabled:opacity-50 ${
-                  confirmDelete ? 'bg-[#EF4444] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#0A0A0A]'
+                className={`p-1.5 rounded-[8px] transition-colors disabled:opacity-50 ${
+                  confirmDelete
+                    ? 'bg-[#FF4757] text-white'
+                    : 'text-[#3C3C3C] hover:bg-[#FFE8EA] hover:text-[#FF4757]'
                 }`}
               >
                 <Trash2 className="w-3.5 h-3.5" strokeWidth={2.5} />
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

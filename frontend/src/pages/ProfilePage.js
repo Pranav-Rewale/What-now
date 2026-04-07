@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import IdeaCard from '../components/IdeaCard';
-import { Loader2, User, Star, Lightbulb, ArrowLeft } from 'lucide-react';
+import { Button } from '../components/ui/button.jsx';
+import { Loader2, User, TrendingUp, Lightbulb, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -14,9 +16,7 @@ export default function ProfilePage() {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchMyIdeas();
-  }, [refreshKey]);
+  useEffect(() => { fetchMyIdeas(); }, [refreshKey]);
 
   const fetchMyIdeas = async () => {
     setLoading(true);
@@ -24,27 +24,23 @@ export default function ProfilePage() {
       const { data } = await axios.get(`${API_URL}/api/ideas/my`, { withCredentials: true });
       setIdeas(data.ideas);
     } catch (e) {
-      console.error('Failed to fetch ideas:', e);
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleIdeaDeleted = (ideaId) => {
-    setIdeas((prev) => prev.filter((idea) => idea.id !== ideaId));
-  };
+  const totalUpvotes = ideas.reduce((sum, i) => sum + (i.upvotes || 0), 0);
 
-  const handleVoteUpdate = (ideaId, voteData) => {
+  const handleIdeaDeleted = (ideaId) => setIdeas((prev) => prev.filter((i) => i.id !== ideaId));
+  const handleVoteUpdate = (ideaId, voteData) =>
     setIdeas((prev) =>
-      prev.map((idea) =>
-        idea.id === ideaId
-          ? { ...idea, upvotes: voteData.upvotes, downvotes: voteData.downvotes, score: voteData.score, user_vote: voteData.user_vote }
-          : idea
+      prev.map((i) =>
+        i.id === ideaId
+          ? { ...i, upvotes: voteData.upvotes, downvotes: voteData.downvotes, score: voteData.score, user_vote: voteData.user_vote }
+          : i
       )
     );
-  };
-
-  const totalUpvotes = ideas.reduce((sum, idea) => sum + (idea.upvotes || 0), 0);
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -52,73 +48,86 @@ export default function ProfilePage() {
       <Link
         to="/"
         data-testid="back-to-feed"
-        className="inline-flex items-center gap-2 text-sm font-bold text-[#64748B] hover:text-[#0A0A0A] mb-6 transition-colors font-heading"
+        className="inline-flex items-center gap-2 text-sm font-bold text-[#3C3C3C] hover:text-[#1A1A1A] mb-6 transition-colors font-heading"
       >
         <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
         Back to Feed
       </Link>
 
-      {/* Profile Header */}
-      <div className="mb-8 bg-[#FFFFFF] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] rounded-2xl p-6">
+      {/* Profile header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-white rounded-[16px] p-6 mb-8"
+        style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+      >
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 bg-[#FACC15] border-2 border-[#0A0A0A] rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] flex-shrink-0">
-            <User className="w-8 h-8 text-[#0A0A0A]" strokeWidth={2.5} />
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#FFE100' }}
+          >
+            <User className="w-7 h-7 text-[#000000]" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 data-testid="profile-name" className="text-2xl font-black font-heading text-[#0A0A0A]">
+            <h1 data-testid="profile-name" className="text-xl font-black font-heading text-[#1A1A1A]">
               {user?.name || 'Anonymous'}
             </h1>
-            <p className="text-[#64748B] font-body text-sm">{user?.email}</p>
+            <p className="text-sm text-[#3C3C3C]">{user?.email}</p>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="flex gap-4 flex-wrap">
-          <div className="bg-[#FFFDF7] border-2 border-[#0A0A0A] shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] rounded-xl p-4 flex items-center gap-3 min-w-[140px]">
-            <Lightbulb className="w-6 h-6 text-[#FACC15]" strokeWidth={2.5} />
-            <div>
-              <p data-testid="ideas-count" className="text-2xl font-black font-heading">{ideas.length}</p>
-              <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Ideas Shared</p>
-            </div>
-          </div>
-          <div className="bg-[#FFFDF7] border-2 border-[#0A0A0A] shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] rounded-xl p-4 flex items-center gap-3 min-w-[140px]">
-            <Star className="w-6 h-6 text-[#EF4444]" strokeWidth={2.5} />
-            <div>
-              <p data-testid="upvotes-count" className="text-2xl font-black font-heading">{totalUpvotes}</p>
-              <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Total Upvotes</p>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 gap-4 max-w-sm">
+          <StatCard
+            icon={<Lightbulb className="w-5 h-5" style={{ color: '#FFE100' }} strokeWidth={2.5} />}
+            value={ideas.length}
+            label="Ideas Shared"
+            testId="ideas-count"
+            accent="#FFE100"
+          />
+          <StatCard
+            icon={<TrendingUp className="w-5 h-5 text-[#2DFF72]" strokeWidth={2.5} />}
+            value={totalUpvotes}
+            label="Total Upvotes"
+            testId="upvotes-count"
+            accent="#2DFF72"
+          />
         </div>
-      </div>
+      </motion.div>
 
-      <h2 className="text-xl font-black font-heading text-[#0A0A0A] mb-5">My Ideas</h2>
+      {/* My ideas */}
+      <h2 className="text-lg font-black font-heading text-[#1A1A1A] mb-5">My Ideas</h2>
 
       {loading && (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FACC15]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#FFE100]" />
         </div>
       )}
 
       {!loading && ideas.length === 0 && (
-        <div className="text-center py-16 bg-[#FFFFFF] border-2 border-[#0A0A0A] rounded-2xl shadow-[4px_4px_0px_0px_rgba(10,10,10,1)]">
-          <Lightbulb className="w-12 h-12 text-[#FACC15] mx-auto mb-3" strokeWidth={2} />
-          <h3 className="text-xl font-bold font-heading text-[#0A0A0A] mb-2">No ideas yet!</h3>
-          <p className="text-[#64748B] font-body mb-5">Share your first idea with the community.</p>
-          <Link
-            to="/"
-            className="bg-[#FACC15] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1 font-bold transition-all px-6 py-3 rounded-xl font-heading inline-block"
-          >
-            Go to Feed
-          </Link>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-16 bg-white rounded-[16px]"
+          style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+        >
+          <Lightbulb className="w-12 h-12 text-[#E6E6E6] mx-auto mb-3" strokeWidth={1.5} />
+          <h3 className="text-lg font-bold font-heading text-[#1A1A1A] mb-2">No ideas yet!</h3>
+          <p className="text-sm text-[#3C3C3C] mb-5">Share your first idea with the community.</p>
+          <Button variant="primary" size="default" className="font-heading" asChild>
+            <Link to="/">Go to Feed</Link>
+          </Button>
+        </motion.div>
       )}
 
       {!loading && ideas.length > 0 && (
         <div data-testid="my-ideas-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {ideas.map((idea) => (
+          {ideas.map((idea, index) => (
             <IdeaCard
               key={idea.id}
               idea={idea}
+              index={index}
               onDeleted={handleIdeaDeleted}
               onVoteUpdate={handleVoteUpdate}
             />
@@ -126,5 +135,24 @@ export default function ProfilePage() {
         </div>
       )}
     </main>
+  );
+}
+
+function StatCard({ icon, value, label, testId, accent }) {
+  return (
+    <div
+      className="bg-[#FAFAFA] rounded-[12px] p-4 border border-[#E6E6E6] flex items-center gap-3"
+    >
+      <div
+        className="w-9 h-9 rounded-[8px] flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: `${accent}20` }}
+      >
+        {icon}
+      </div>
+      <div>
+        <p data-testid={testId} className="text-xl font-black font-heading text-[#1A1A1A] leading-none">{value}</p>
+        <p className="text-xs text-[#3C3C3C] mt-0.5">{label}</p>
+      </div>
+    </div>
   );
 }

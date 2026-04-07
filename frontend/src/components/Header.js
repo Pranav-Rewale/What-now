@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { Button } from './ui/button.jsx';
 import { Plus, User, LogOut, Zap } from 'lucide-react';
 
 export default function Header() {
@@ -15,52 +17,58 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#FFFDF7] border-b-2 border-[#0A0A0A] sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <header className="bg-[#000000] sticky top-0 z-50" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" data-testid="logo-link" className="flex items-center gap-2 group">
-          <div className="bg-[#FACC15] border-2 border-[#0A0A0A] rounded-xl p-2 shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] group-hover:shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] group-hover:-translate-y-0.5 transition-all">
-            <Zap className="w-5 h-5 text-[#0A0A0A]" strokeWidth={3} />
-          </div>
-          <span className="text-2xl font-black font-heading text-[#0A0A0A]">bored?</span>
+        <Link to="/" data-testid="logo-link" className="flex items-center gap-2.5 group">
+          <motion.div
+            whileHover={{ rotate: 15, scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            className="bg-[#FFE100] rounded-[8px] p-1.5"
+          >
+            <Zap className="w-5 h-5 text-[#000000]" strokeWidth={3} />
+          </motion.div>
+          <span className="text-xl font-black font-heading text-[#FFE100] tracking-tight">bored?</span>
         </Link>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-3">
+        {/* Actions */}
+        <div className="flex items-center gap-2">
           {user ? (
             <>
-              <button
+              <Button
                 onClick={openCreateForm}
                 data-testid="share-idea-btn"
-                className="bg-[#FACC15] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1 font-bold transition-all px-4 py-2 rounded-xl font-heading flex items-center gap-2 text-sm"
+                variant="primary"
+                size="sm"
+                className="text-sm font-heading"
               >
-                <Plus className="w-4 h-4" strokeWidth={3} />
+                <Plus className="w-4 h-4" strokeWidth={2.5} />
                 <span className="hidden sm:inline">Share Idea</span>
-              </button>
-              <Link
-                to="/profile"
-                data-testid="profile-link"
-                className="bg-[#FFFFFF] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] hover:shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-0.5 font-bold transition-all p-2 rounded-xl flex items-center gap-2"
-              >
-                <User className="w-5 h-5" strokeWidth={2.5} />
-                <span className="hidden sm:inline text-sm font-heading">{user.name || 'Profile'}</span>
-              </Link>
-              <button
+              </Button>
+
+              <Button variant="ghost-white" size="default" className="text-sm font-heading" asChild>
+                <Link to="/profile" data-testid="profile-link">
+                  <User className="w-4 h-4" strokeWidth={2.5} />
+                  <span className="hidden sm:inline">{user.name || 'Profile'}</span>
+                </Link>
+              </Button>
+
+              <Button
                 onClick={handleLogout}
                 data-testid="logout-btn"
-                className="bg-[#FFFFFF] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[3px_3px_0px_0px_rgba(10,10,10,1)] hover:shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-0.5 font-bold transition-all p-2 rounded-xl"
+                variant="ghost-white"
+                size="icon"
+                title="Logout"
               >
-                <LogOut className="w-5 h-5" strokeWidth={2.5} />
-              </button>
+                <LogOut className="w-4 h-4" strokeWidth={2.5} />
+              </Button>
             </>
           ) : (
-            <Link
-              to="/auth"
-              data-testid="login-btn"
-              className="bg-[#FACC15] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1 font-bold transition-all px-5 py-2 rounded-xl font-heading text-sm"
-            >
-              Login / Sign Up
-            </Link>
+            <Button variant="primary" size="sm" className="font-heading text-sm" asChild>
+              <Link to="/auth" data-testid="login-btn">
+                Login / Sign Up
+              </Link>
+            </Button>
           )}
         </div>
       </div>

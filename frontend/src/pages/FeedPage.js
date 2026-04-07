@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 import FilterBar from '../components/FilterBar';
 import IdeaCard from '../components/IdeaCard';
 import { Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { Button } from '../components/ui/button.jsx';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const LIMIT = 12;
@@ -22,9 +24,7 @@ export default function FeedPage() {
       const params = { skip: currentSkip, limit: LIMIT, sort: currentFilters.sort };
       if (currentFilters.category !== 'all') params.category = currentFilters.category;
       if (currentFilters.timeNeeded !== 'all') params.time_needed = currentFilters.timeNeeded;
-
       const { data } = await axios.get(`${API_URL}/api/ideas`, { params, withCredentials: true });
-
       if (append) {
         setIdeas((prev) => [...prev, ...data.ideas]);
       } else {
@@ -65,46 +65,64 @@ export default function FeedPage() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Hero */}
-      <div className="mb-10 text-center">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#0A0A0A] font-heading mb-3">
-          What to do when <span className="bg-[#FACC15] px-2 rounded-lg border-2 border-[#0A0A0A]">bored</span>?
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-10 text-center"
+      >
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#1A1A1A] font-heading mb-3 leading-tight">
+          What to do when{' '}
+          <span
+            className="px-3 rounded-[8px] inline-block"
+            style={{ backgroundColor: '#FFE100', color: '#000000' }}
+          >
+            bored
+          </span>
+          ?
         </h1>
-        <p className="text-base sm:text-lg text-[#334155] font-body font-medium max-w-xl mx-auto">
+        <p className="text-base sm:text-lg text-[#3C3C3C] font-body max-w-xl mx-auto">
           Crowdsourced ideas from real people. Vote for your favorites and share your own!
         </p>
-      </div>
+      </motion.div>
 
-      {/* Filter Bar */}
+      {/* Filters */}
       <FilterBar filters={filters} onFiltersChange={setFilters} />
 
-      {/* Loading skeleton */}
+      {/* Loading */}
       {loading && ideas.length === 0 && (
         <div className="flex justify-center items-center py-24">
-          <Loader2 className="w-10 h-10 animate-spin text-[#FACC15]" />
+          <Loader2 className="w-10 h-10 animate-spin text-[#FFE100]" />
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty */}
       {!loading && ideas.length === 0 && (
-        <div className="text-center py-24 bg-white border-2 border-[#0A0A0A] rounded-2xl shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] mt-6">
-          <p className="text-5xl mb-4">&#129300;</p>
-          <h3 className="text-2xl font-bold font-heading text-[#0A0A0A] mb-2">No ideas found!</h3>
-          <p className="text-[#64748B] font-body">Be the first to share an idea for these filters.</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-20 bg-white rounded-[16px] mt-6"
+          style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+        >
+          <div className="text-5xl mb-4 font-black text-[#E6E6E6]">?</div>
+          <h3 className="text-xl font-bold font-heading text-[#1A1A1A] mb-2">No ideas found!</h3>
+          <p className="text-[#3C3C3C] font-body text-sm">Be the first to share an idea for these filters.</p>
+        </motion.div>
       )}
 
-      {/* Ideas Grid */}
+      {/* Grid */}
       {ideas.length > 0 && (
         <div
           data-testid="ideas-grid"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"
         >
-          {ideas.map((idea) => (
+          {ideas.map((idea, index) => (
             <IdeaCard
               key={idea.id}
               idea={idea}
+              index={index}
               onVoteUpdate={handleVoteUpdate}
               onDeleted={handleIdeaDeleted}
             />
@@ -112,22 +130,24 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* Load More */}
+      {/* Load more */}
       {ideas.length < total && !loading && (
         <div className="flex justify-center mt-10">
-          <button
+          <Button
             onClick={handleLoadMore}
             data-testid="load-more-btn"
-            className="bg-[#FFFFFF] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1 font-bold transition-all px-8 py-3 rounded-xl font-heading"
+            variant="secondary"
+            size="lg"
+            className="font-heading"
           >
             Load More ({total - ideas.length} more)
-          </button>
+          </Button>
         </div>
       )}
 
       {loading && ideas.length > 0 && (
         <div className="flex justify-center mt-8">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FACC15]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#FFE100]" />
         </div>
       )}
     </main>

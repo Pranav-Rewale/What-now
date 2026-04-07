@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Button } from '../components/ui/button.jsx';
+import { Input } from '../components/ui/input.jsx';
+import { Label } from '../components/ui/label.jsx';
 
 function formatError(detail) {
   if (detail == null) return 'Something went wrong. Please try again.';
   if (typeof detail === 'string') return detail;
-  if (Array.isArray(detail)) return detail.map((e) => (e && typeof e.msg === 'string' ? e.msg : JSON.stringify(e))).join(' ');
+  if (Array.isArray(detail)) return detail.map((e) => (e?.msg ? e.msg : JSON.stringify(e))).join(' ');
   return String(detail);
 }
 
@@ -19,10 +23,7 @@ export default function AuthPage() {
   const { login, register, user } = useAuth();
   const navigate = useNavigate();
 
-  if (user) {
-    navigate('/');
-    return null;
-  }
+  if (user) { navigate('/'); return null; }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,114 +43,134 @@ export default function AuthPage() {
     }
   };
 
-  const switchMode = (newMode) => {
-    setMode(newMode);
-    setError('');
-    setForm({ name: '', email: '', password: '' });
-  };
+  const switchMode = (m) => { setMode(m); setError(''); setForm({ name: '', email: '', password: '' }); };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: '#FFFDF7' }}>
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-surface flex items-center justify-center px-4 py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md"
+      >
+        {/* Brand blurb */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-black font-heading text-[#1A1A1A]">
+            Join <span className="bg-[#FFE100] px-2 rounded-[4px]">bored?</span>
+          </h1>
+          <p className="text-sm text-[#3C3C3C] mt-2">Share what you do when boredom strikes.</p>
+        </div>
+
         {/* Card */}
-        <div className="bg-[#FFFFFF] border-2 border-[#0A0A0A] shadow-[8px_8px_0px_0px_rgba(10,10,10,1)] rounded-2xl p-8">
-          {/* Mode Toggle */}
-          <div className="flex mb-8 border-2 border-[#0A0A0A] rounded-xl overflow-hidden">
-            <button
-              onClick={() => switchMode('login')}
-              data-testid="login-tab"
-              className={`flex-1 py-3 font-bold font-heading text-sm transition-all ${mode === 'login' ? 'bg-[#FACC15] text-[#0A0A0A]' : 'bg-white text-[#0A0A0A] hover:bg-[#FFFDF7]'}`}
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => switchMode('register')}
-              data-testid="register-tab"
-              className={`flex-1 py-3 font-bold font-heading text-sm transition-all border-l-2 border-[#0A0A0A] ${mode === 'register' ? 'bg-[#FACC15] text-[#0A0A0A]' : 'bg-white text-[#0A0A0A] hover:bg-[#FFFDF7]'}`}
-            >
-              Sign Up
-            </button>
+        <div className="bg-white rounded-[16px] overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+          {/* Mode toggle */}
+          <div className="flex border-b border-[#E6E6E6]">
+            {['login', 'register'].map((m) => (
+              <button
+                key={m}
+                onClick={() => switchMode(m)}
+                data-testid={m === 'login' ? 'login-tab' : 'register-tab'}
+                className={`flex-1 py-3.5 text-sm font-bold font-heading transition-colors ${
+                  mode === m
+                    ? 'bg-[#FFE100] text-[#000000]'
+                    : 'bg-white text-[#3C3C3C] hover:bg-[#FAFAFA]'
+                }`}
+              >
+                {m === 'login' ? 'Log In' : 'Sign Up'}
+              </button>
+            ))}
           </div>
 
-          <h2 className="text-2xl font-black font-heading text-[#0A0A0A] mb-6">
-            {mode === 'login' ? 'Welcome back!' : 'Join the community!'}
-          </h2>
+          <div className="p-7">
+            <h2 className="text-xl font-black font-heading text-[#1A1A1A] mb-5">
+              {mode === 'login' ? 'Welcome back!' : 'Create your account'}
+            </h2>
 
-          {error && (
-            <div data-testid="auth-error" className="bg-red-50 border-2 border-red-500 text-red-700 p-3 rounded-xl mb-5 font-body text-sm font-semibold">
-              {error}
-            </div>
-          )}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                data-testid="auth-error"
+                className="bg-[#FFF0F2] border border-[#FF4757] text-[#FF4757] rounded-[8px] px-4 py-3 mb-5 text-sm font-semibold"
+              >
+                {error}
+              </motion.div>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'register' && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'register' && (
+                <div>
+                  <Label htmlFor="name">Your Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A0A0]" />
+                    <Input
+                      id="name"
+                      data-testid="name-input"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="What should we call you?"
+                      required
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-bold text-[#0A0A0A] mb-2 font-heading">Your Name</label>
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#64748B]" />
-                  <input
-                    type="text"
-                    data-testid="name-input"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="What should we call you?"
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A0A0]" />
+                  <Input
+                    id="email"
+                    type="email"
+                    data-testid="email-input"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="your@email.com"
                     required
-                    className="w-full bg-[#FFFFFF] border-2 border-[#0A0A0A] rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-4 focus:ring-[#FACC15]/50 font-body font-medium text-[#0A0A0A] shadow-[2px_2px_0px_0px_rgba(10,10,10,1)]"
+                    className="pl-10"
                   />
                 </div>
               </div>
-            )}
 
-            <div>
-              <label className="block text-sm font-bold text-[#0A0A0A] mb-2 font-heading">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#64748B]" />
-                <input
-                  type="email"
-                  data-testid="email-input"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="your@email.com"
-                  required
-                  className="w-full bg-[#FFFFFF] border-2 border-[#0A0A0A] rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-4 focus:ring-[#FACC15]/50 font-body font-medium text-[#0A0A0A] shadow-[2px_2px_0px_0px_rgba(10,10,10,1)]"
-                />
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A0A0]" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    data-testid="password-input"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder="Make it strong!"
+                    required
+                    className="pl-10 pr-11"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] hover:text-[#1A1A1A] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[#0A0A0A] mb-2 font-heading">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#64748B]" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  data-testid="password-input"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Make it strong!"
-                  required
-                  className="w-full bg-[#FFFFFF] border-2 border-[#0A0A0A] rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-4 focus:ring-[#FACC15]/50 font-body font-medium text-[#0A0A0A] shadow-[2px_2px_0px_0px_rgba(10,10,10,1)]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#0A0A0A] transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              data-testid="auth-submit-btn"
-              disabled={loading}
-              className="w-full bg-[#FACC15] text-[#0A0A0A] border-2 border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(10,10,10,1)] hover:shadow-[6px_6px_0px_0px_rgba(10,10,10,1)] hover:-translate-y-1 hover:-translate-x-1 font-bold transition-all py-3 rounded-xl font-heading text-base disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-            >
-              {loading ? 'Please wait...' : mode === 'login' ? 'Log In' : 'Create Account!'}
-            </button>
-          </form>
+              <Button
+                type="submit"
+                data-testid="auth-submit-btn"
+                disabled={loading}
+                variant="primary"
+                size="lg"
+                className="w-full font-heading mt-2"
+              >
+                {loading ? 'Please wait...' : mode === 'login' ? 'Log In' : 'Create Account'}
+              </Button>
+            </form>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
