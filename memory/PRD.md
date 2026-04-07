@@ -30,8 +30,15 @@ Framer Motion: card entrance stagger, hover lift, vote button spring, modal slid
 
 ## What's Been Implemented
 
-### Backend (/app/backend/server.py) — unchanged from v1
-- JWT auth: register, login, logout, me, refresh (cookie-based)
+## Auth (dual method — April 2026)
+- [x] Email/password JWT auth (existing — unchanged)
+- [x] Google OAuth via Emergent Auth (new)
+  - GET /api/auth/google/session — exchanges session_id, creates user, sets session_token cookie
+  - get_current_user checks session_token (Google) then access_token (JWT)
+  - AuthCallback.js processes #session_id= URL hash fragment
+  - AppRouter synchronously detects session_id before route renders
+  - AuthContext skips /me check during OAuth callback
+  - Logout clears both cookies + deletes session from user_sessions collection
 - Brute force protection (5 attempts → 15 min lockout)
 - Admin seeding + 12 sample ideas on first startup
 - Full CRUD for ideas (author-only edit/delete)
