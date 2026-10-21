@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext';
 import IdeaCard from '../components/IdeaCard';
 import { Button } from '../components/ui/button.jsx';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
 export default function CommunityPage() {
   const { communityId } = useParams();

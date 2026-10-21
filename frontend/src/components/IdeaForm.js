@@ -8,7 +8,7 @@ import { Input } from './ui/input.jsx';
 import { Textarea } from './ui/textarea.jsx';
 import { Label } from './ui/label.jsx';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
 function formatError(detail) {
   if (detail == null) return 'Something went wrong. Please try again.';

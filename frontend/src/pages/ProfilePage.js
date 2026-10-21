@@ -8,7 +8,7 @@ import { Button } from '../components/ui/button.jsx';
 import { Loader2, User, TrendingUp, Lightbulb, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
 export default function ProfilePage() {
   const { user } = useAuth();

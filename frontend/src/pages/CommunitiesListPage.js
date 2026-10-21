@@ -6,7 +6,7 @@ import { Users, UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button.jsx';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
 export default function CommunitiesListPage() {
   const { user } = useAuth();

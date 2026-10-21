@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
-load_dotenv()
+from pathlib import Path
+load_dotenv(Path(__file__).parent / ".env")
 
 from fastapi import FastAPI, HTTPException, Request, Response, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from bson import ObjectId
 from datetime import datetime, timezone, timedelta
@@ -15,7 +16,8 @@ import jwt
 import httpx
 
 # Ensure uploads dir exists before mounting
-os.makedirs("/app/backend/uploads", exist_ok=True)
+UPLOAD_DIR = Path(__file__).parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI()
 
@@ -31,10 +33,10 @@ app.add_middleware(
 )
 
 # Serve uploaded images at /api/uploads/*
-app.mount("/api/uploads", StaticFiles(directory="/app/backend/uploads"), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
-mongo_client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-db = mongo_client[os.environ["DB_NAME"]]
+mongo_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017"))
+db = mongo_client[os.environ.get("DB_NAME", "what_now")]
 
 JWT_ALGORITHM = "HS256"
 
@@ -48,7 +50,10 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    try:
+        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    except ValueError:
+        return False
 
 
 def create_access_token(user_id: str, email: str) -> str:
@@ -62,8 +67,8 @@ def create_refresh_token(user_id: str) -> str:
 
 
 def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="lax", max_age=2592000, path="/")
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=os.environ.get("COOKIE_SECURE", "false").lower() == "true", samesite="lax", max_age=604800, path="/")
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=os.environ.get("COOKIE_SECURE", "false").lower() == "true", samesite="lax", max_age=2592000, path="/")
 
 
 def format_user(user: dict) -> dict:
@@ -135,8 +140,23 @@ def format_idea(idea: dict, user_vote: Optional[str] = None) -> dict:
 
 class RegisterRequest(BaseModel):
     email: str
-    password: str
-    name: str
+    password: str = Field(min_length=8, max_length=72)
+    name: str = Field(min_length=1, max_length=100)
+
+    @field_validator("email")
+    @classmethod
+    def valid_email(cls, value):
+        value = value.lower().strip()
+        if len(value) > 254 or value.count("@") != 1 or "." not in value.split("@")[1]:
+            raise ValueError("Enter a valid email address")
+        return value
+
+    @field_validator("password")
+    @classmethod
+    def valid_password(cls, value):
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must be at most 72 bytes")
+        return value
 
 class LoginRequest(BaseModel):
     email: str
@@ -232,7 +252,7 @@ async def refresh(request: Request, response: Response):
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         user_id = str(user["_id"])
-        response.set_cookie(key="access_token", value=create_access_token(user_id, user["email"]), httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
+        response.set_cookie(key="access_token", value=create_access_token(user_id, user["email"]), httponly=True, secure=os.environ.get("COOKIE_SECURE", "false").lower() == "true", samesite="lax", max_age=604800, path="/")
         return {"message": "Token refreshed"}
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
@@ -276,7 +296,7 @@ async def upload_image(request: Request, file: UploadFile = File(...)):
     if ext not in {"jpg", "jpeg", "png", "gif", "webp", "avif"}:
         ext = "jpg"
     filename = f"{uuid.uuid4().hex}.{ext}"
-    file_path = f"/app/backend/uploads/{filename}"
+    file_path = UPLOAD_DIR / filename
     with open(file_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
     return {"url": f"{APP_URL}/api/uploads/{filename}"}
@@ -356,8 +376,8 @@ async def get_ideas(
     category: Optional[str] = Query(None),
     time_needed: Optional[str] = Query(None),
     sort: str = Query("popular"),
-    skip: int = Query(0),
-    limit: int = Query(12),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(12, ge=1, le=100),
     community_id: Optional[str] = Query(None),
 ):
     query = {}
@@ -529,7 +549,11 @@ async def leave_community(community_id: str, request: Request):
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok"}
+    try:
+        await db.command("ping")
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    return {"status": "ok", "database": "connected"}
 
 
 # ---- STARTUP ----
@@ -639,17 +663,25 @@ async def startup():
     await db.community_members.create_index([("user_id", 1), ("community_id", 1)], unique=True)
     await db.communities.create_index("slug", unique=True)
 
-    # Seed admin
-    admin_email = os.environ.get("ADMIN_EMAIL", "admin@boredideas.com")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
-    existing = await db.users.find_one({"email": admin_email})
-    if existing is None:
-        await db.users.insert_one({"email": admin_email, "name": "Admin", "password_hash": hash_password(admin_password), "role": "admin", "created_at": datetime.now(timezone.utc)})
-    elif not verify_password(admin_password, existing.get("password_hash", "")):
-        await db.users.update_one({"email": admin_email}, {"$set": {"password_hash": hash_password(admin_password)}})
+    if not os.environ.get("JWT_SECRET") or len(get_jwt_secret()) < 32:
+        raise RuntimeError("Set JWT_SECRET to a random secret of at least 32 characters")
+
+    # Admin provisioning is optional and never resets existing passwords.
+    admin_email = os.environ.get("ADMIN_EMAIL")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+    if admin_email and admin_password:
+        await db.users.update_one({"email": admin_email.lower().strip()}, {"$setOnInsert": {
+            "name": "Admin", "password_hash": hash_password(admin_password),
+            "role": "admin", "created_at": datetime.now(timezone.utc),
+        }}, upsert=True)
+
+    if os.environ.get("SEED_DEMO_DATA", "false").lower() != "true":
+        return
+    from seed import seed_demo_users
+    await seed_demo_users(db, hash_password)
 
     # Seed global ideas
-    count = await db.ideas.count_documents({"community_id": None})
+    count = await db.ideas.count_documents({"community_id": None, "seed_key": {"$exists": False}})
     if count == 0:
         now = datetime.now(timezone.utc)
         sample = [
@@ -681,8 +713,9 @@ async def startup():
                     city_ideas.append({**idea, "image_url": None, "link_url": None, "community_id": community_id, "author_id": "system", "author_name": "Admin", "upvotes": 0, "downvotes": 0, "score": 0, "created_at": now, "updated_at": now})
                 await db.ideas.insert_many(city_ideas)
 
-    os.makedirs("/app/memory", exist_ok=True)
-    with open("/app/memory/test_credentials.md", "w") as f:
-        f.write(f"# Test Credentials\n\n## Admin\n- Email: {os.environ.get('ADMIN_EMAIL')}\n- Password: {os.environ.get('ADMIN_PASSWORD')}\n- Role: admin\n")
-
     print("Startup complete!")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    mongo_client.close()

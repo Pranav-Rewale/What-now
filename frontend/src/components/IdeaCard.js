@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 import { getCategoryColor, getCategoryTextColor, getCategoryLabel } from '../utils/constants';
 import { Badge } from './ui/badge.jsx';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
 function formatDate(dateStr) {
   const date = new Date(dateStr);

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { Users, MapPin, UserPlus, UserCheck, ChevronRight } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
 export default function Sidebar() {
   const { user } = useAuth();

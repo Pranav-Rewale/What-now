@@ -1,0 +1,27 @@
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  backend:
+    build: ./backend
+    ports:
+      - "127.0.0.1:8001:8001"
+    env_file: ./backend/.env
+    environment:
+      MONGO_URL: mongodb://mongo:27017
+    volumes:
+      - uploads:/app/backend/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  mongo_data:
+  uploads:
